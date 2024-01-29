@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.util.List;
+import java.util.Optional;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
@@ -34,8 +35,8 @@ public class PokemonRepositoryTests {
         // Arrange
         Pokemon pokemon = Pokemon.builder().name("picachu").type("electric").build();
         Pokemon pokemon2 = Pokemon.builder().name("picachu").type("electric").build();
-        Pokemon savedPokemon = pokemonRepository.save(pokemon);
-        Pokemon savedPokemon2 = pokemonRepository.save(pokemon2);
+        pokemonRepository.save(pokemon);
+        pokemonRepository.save(pokemon2);
 
         // Act
         List<Pokemon> pokemonList = pokemonRepository.findAll();
@@ -49,12 +50,57 @@ public class PokemonRepositoryTests {
     public void PokemonRepository_FindById_ReturnsOnePokemon() {
         // Arrange
         Pokemon pokemon = Pokemon.builder().name("picachu").type("electric").build();
-        Pokemon savedPokemon = pokemonRepository.save(pokemon);
+        pokemonRepository.save(pokemon);
 
         // Act
         Pokemon pokemonGot = pokemonRepository.findById(pokemon.getId()).get();
 
         // Assert
         Assertions.assertThat(pokemonGot).isNotNull();
+    }
+
+    @Test
+    public void PokemonRepository_FindByType_ReturnsPokemonNotNull() {
+        // Arrange
+        Pokemon pokemon = Pokemon.builder().name("picachu").type("electric").build();
+        pokemonRepository.save(pokemon);
+
+        // Act
+        Pokemon pokemonGot = pokemonRepository.findByType(pokemon.getType()).get();
+
+        // Assert
+        Assertions.assertThat(pokemonGot).isNotNull();
+    }
+
+    @Test
+    public void PokemonRepository_UpdatePokemon_ReturnsPokemonNotNull() {
+        // Arrange
+        Pokemon pokemon = Pokemon.builder().name("picachu").type("electric").build();
+        pokemonRepository.save(pokemon);
+        Pokemon pokemonSaved = pokemonRepository.findById(pokemon.getId()).get();
+        pokemonSaved.setType("Electric");
+        pokemonSaved.setName("Raichu");
+
+        // Act
+        Pokemon updatedPokemon = pokemonRepository.save(pokemonSaved);
+
+        // Assert
+        Assertions.assertThat(updatedPokemon).isNotNull();
+        Assertions.assertThat(updatedPokemon.getType()).isEqualTo("Electric");
+        Assertions.assertThat(updatedPokemon.getName()).isEqualTo("Raichu");
+    }
+
+    @Test
+    public void PokemonRepository_Delete_ReturnedPokemonIsEmpty() {
+        // Arrange
+        Pokemon pokemon = Pokemon.builder().name("picachu").type("electric").build();
+        pokemonRepository.save(pokemon);
+
+        // Act
+        pokemonRepository.deleteById(pokemon.getId());
+        Optional<Pokemon> pokemonGot = pokemonRepository.findByType(pokemon.getType());
+
+        // Assert
+        Assertions.assertThat(pokemonGot).isEmpty();
     }
 }
