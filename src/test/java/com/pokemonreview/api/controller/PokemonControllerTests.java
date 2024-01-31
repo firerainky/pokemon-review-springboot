@@ -3,10 +3,12 @@ package com.pokemonreview.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pokemonreview.api.controllers.PokemonController;
 import com.pokemonreview.api.dto.PokemonDto;
+import com.pokemonreview.api.dto.PokemonResponse;
 import com.pokemonreview.api.dto.ReviewDto;
 import com.pokemonreview.api.models.Pokemon;
 import com.pokemonreview.api.models.Review;
 import com.pokemonreview.api.service.PokemonService;
+import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +23,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.Collections;
+
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(controllers = PokemonController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -59,6 +65,67 @@ public class PokemonControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(pokemonDto)));
 
-        response.andExpect(MockMvcResultMatchers.status().isCreated());
+        response.andExpect(MockMvcResultMatchers.status().isCreated())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name", CoreMatchers.is(pokemonDto.getName())))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.type", CoreMatchers.is(pokemonDto.getType())));
+//                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    public void PokemonController_GetAllPokemon_ReturnsResponseDto() throws Exception {
+        PokemonResponse response = PokemonResponse.builder().pageSize(10).last(true).pageNo(1)
+                .content(Collections.singletonList(pokemonDto)).build();
+        when(pokemonService.getAllPokemon(1, 10)).thenReturn(response);
+
+        ResultActions actions = mockMvc.perform(get("/api/pokemon")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("pageNo", "1")
+                .param("pageSize", "10"));
+
+        actions.andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.size()", CoreMatchers.is(response.getContent().size())));
+//                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    public void PokemonController_PokemonDetail_ReturnsPokemonDto() throws Exception {
+        int pokemonId = 1;
+        when(pokemonService.getPokemonById(pokemonId)).thenReturn(pokemonDto);
+
+        ResultActions response = mockMvc.perform(get("/api/pokemon/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(pokemonDto)));
+
+        response.andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name", CoreMatchers.is(pokemonDto.getName())))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.type", CoreMatchers.is(pokemonDto.getType())));
+//                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    public void PokemonController_UpdatePokemon_ReturnsPokemonDto() throws Exception {
+        int pokemonId = 1;
+        when(pokemonService.updatePokemon(pokemonDto, pokemonId)).thenReturn(pokemonDto);
+
+        ResultActions response = mockMvc.perform(put("/api/pokemon/1/update")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(pokemonDto)));
+
+        response.andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name", CoreMatchers.is(pokemonDto.getName())))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.type", CoreMatchers.is(pokemonDto.getType())));
+//                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    public void PokemonController_DeletePokemon_ReturnsString() throws Exception {
+        int pokemonId = 1;
+        doNothing().when(pokemonService).deletePokemonId(pokemonId);
+        when(pokemonService.updatePokemon(pokemonDto, pokemonId)).thenReturn(pokemonDto);
+
+        ResultActions response = mockMvc.perform(delete("/api/pokemon/1/delete")
+                .contentType(MediaType.APPLICATION_JSON));
+
+        response.andExpect(MockMvcResultMatchers.status().isOk());
     }
 }
