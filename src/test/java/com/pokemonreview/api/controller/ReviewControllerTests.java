@@ -10,7 +10,6 @@ import com.pokemonreview.api.service.ReviewService;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,7 +21,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.Arrays;
 
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -62,7 +60,8 @@ public class ReviewControllerTests {
                 .content(objectMapper.writeValueAsString(pokemonDto)));
 
         response.andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.size()", CoreMatchers.is(Arrays.asList(reviewDto).size())));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.size()",
+                        CoreMatchers.is(Arrays.asList(reviewDto).size())));
     }
 
     @Test
@@ -71,14 +70,13 @@ public class ReviewControllerTests {
         int reviewId = 1;
         when(reviewService.updateReview(pokemonId, reviewId, reviewDto)).thenReturn(reviewDto);
 
-        ResultActions response = mockMvc.perform(put("/api/pokemon/1/reviews/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(reviewDto)));
+        ResultActions response =
+                mockMvc.perform(put("/api/pokemon/1/reviews/1").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(reviewDto)));
 
-        response.andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.title", CoreMatchers.is(reviewDto.getTitle())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.content", CoreMatchers.is(reviewDto.getContent())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.stars", CoreMatchers.is(reviewDto.getStars())));
+        response.andExpect(MockMvcResultMatchers.status().isOk()).andExpect(MockMvcResultMatchers.jsonPath("$.title",
+                CoreMatchers.is(reviewDto.getTitle()))).andExpect(MockMvcResultMatchers.jsonPath("$.content",
+                CoreMatchers.is(reviewDto.getContent()))).andExpect(MockMvcResultMatchers.jsonPath("$.stars",
+                CoreMatchers.is(reviewDto.getStars())));
     }
 
     @Test
@@ -91,7 +89,7 @@ public class ReviewControllerTests {
                 .content(objectMapper.writeValueAsString(reviewDto)));
 
         response.andExpect(MockMvcResultMatchers.status().isCreated())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.title", CoreMatchers.is(reviewDto.getTitle())))
+                .andExpect(MockMvcResultMatchers.jsonPath("$" + ".title", CoreMatchers.is(reviewDto.getTitle())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content", CoreMatchers.is(reviewDto.getContent())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.stars", CoreMatchers.is(reviewDto.getStars())));
     }
@@ -102,13 +100,13 @@ public class ReviewControllerTests {
         int reviewId = 1;
         when(reviewService.getReviewById(reviewId, pokemonId)).thenReturn(reviewDto);
 
-        ResultActions response = mockMvc.perform(get("/api/pokemon/1/reviews/1")
-                .contentType(MediaType.APPLICATION_JSON));
+        ResultActions response =
+                mockMvc.perform(get("/api/pokemon/1/reviews/1").contentType(MediaType.APPLICATION_JSON));
 
-        response.andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.title", CoreMatchers.is(reviewDto.getTitle())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.content", CoreMatchers.is(reviewDto.getContent())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.stars", CoreMatchers.is(reviewDto.getStars())));
+        response.andExpect(MockMvcResultMatchers.status().isOk()).andExpect(MockMvcResultMatchers.jsonPath("$.title",
+                CoreMatchers.is(reviewDto.getTitle()))).andExpect(MockMvcResultMatchers.jsonPath("$.content",
+                CoreMatchers.is(reviewDto.getContent()))).andExpect(MockMvcResultMatchers.jsonPath("$.stars",
+                CoreMatchers.is(reviewDto.getStars())));
     }
 
     @Test
